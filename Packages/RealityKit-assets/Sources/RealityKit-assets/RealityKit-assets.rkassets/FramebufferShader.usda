@@ -1,0 +1,103 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (494.40.1)"
+    }
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def Material "Material"
+    {
+        asset inputs:Eye_L (
+            customData = {
+                dictionary realitykit = {
+                    float2 positionInSubgraph = (-354.3246, 105.60438)
+                    int stackingOrderInSubgraph = 50
+                }
+            }
+        )
+        asset inputs:Eye_R (
+            customData = {
+                dictionary realitykit = {
+                    float2 positionInSubgraph = (-358.1258, 241.91652)
+                    int stackingOrderInSubgraph = 56
+                }
+            }
+        )
+        token outputs:mtlx:surface.connect = </Root/Material/UnlitSurface.outputs:out>
+        token outputs:realitykit:vertex
+        float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (835.9587, 86.31783)
+        int ui:nodegraph:realitykit:subgraphOutputs:stackingOrder = 27
+
+        def Shader "UnlitSurface"
+        {
+            uniform token info:id = "ND_realitykit_unlit_surfaceshader"
+            bool inputs:applyPostProcessToneMap
+            color3f inputs:color.connect = </Root/Material/EyeSwitch.outputs:out>
+            bool inputs:hasPremultipliedAlpha
+            float inputs:opacity
+            float inputs:opacityThreshold
+            token outputs:out
+            float2 ui:nodegraph:node:pos = (564.181, 180.5688)
+            int ui:nodegraph:node:stackingOrder = 59
+        }
+
+        def Shader "UVTexture_R"
+        {
+            uniform token info:id = "ND_UsdUVTexture"
+            color4f inputs:bias
+            color4f inputs:fallback
+            asset inputs:file (
+                colorSpace = "lin_displayp3"
+            )
+            asset inputs:file.connect = </Root/Material.inputs:Eye_R>
+            color4f inputs:scale
+            float2 inputs:st
+            float outputs:r
+            color3f outputs:rgb
+            color4f outputs:rgba
+            float2 ui:nodegraph:node:pos = (-132.5472, 320.0651)
+            int ui:nodegraph:node:stackingOrder = 48
+            string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["outputs:rgba"]
+        }
+
+        def Shader "UVTexture_L"
+        {
+            uniform token info:id = "ND_UsdUVTexture"
+            color4f inputs:bias
+            color4f inputs:fallback
+            asset inputs:file (
+                colorSpace = "lin_displayp3"
+            )
+            asset inputs:file.connect = </Root/Material.inputs:Eye_L>
+            color4f inputs:scale
+            float2 inputs:st
+            string inputs:wrapS
+            string inputs:wrapT
+            float outputs:g
+            float outputs:r
+            color3f outputs:rgb
+            color4f outputs:rgba
+            float2 ui:nodegraph:node:pos = (-122.09106, 67.00516)
+            int ui:nodegraph:node:stackingOrder = 49
+            string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["outputs:rgba", "outputs:rgb", "outputs:rgba"]
+        }
+
+        def Shader "EyeSwitch"
+        {
+            uniform token info:id = "ND_realitykit_geometry_switch_cameraindex_color3"
+            color3f inputs:left.connect = </Root/Material/UVTexture_L.outputs:rgb>
+            color3f inputs:mono.connect = </Root/Material/UVTexture_L.outputs:rgb>
+            color3f inputs:right.connect = </Root/Material/UVTexture_R.outputs:rgb>
+            color3f outputs:out
+            float2 ui:nodegraph:node:pos = (238.5964, 112.05737)
+            int ui:nodegraph:node:stackingOrder = 58
+            string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["outputs:out"]
+        }
+    }
+}
+

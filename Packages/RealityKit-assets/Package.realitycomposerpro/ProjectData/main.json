@@ -1,0 +1,11 @@
+{
+  "pathsToIds" : {
+    "\/RealityKit-assets\/Sources\/RealityKit-assets\/RealityKit-assets.rkassets\/Scene.usda" : "FB227588-5C85-478A-BE96-A7C40FE16013",
+    "RealityKit-assets\/Sources\/RealityKit-assets\/RealityKit-assets.rkassets\/FrameBufferShader.usda" : "10710C85-28C2-4F2E-B9BA-2857E558C2BA"
+  },
+  "projectID" : -2115687297887201569,
+  "uuidToIntID" : {
+    "10710C85-28C2-4F2E-B9BA-2857E558C2BA" : -7532652034750603772,
+    "FB227588-5C85-478A-BE96-A7C40FE16013" : -3320957052208287148
+  }
+}
