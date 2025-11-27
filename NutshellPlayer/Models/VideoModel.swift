@@ -33,6 +33,7 @@ class VideoModel {
     private(set) var isFullRange: Bool = false
     private(set) var isHDR: Bool = false
     private(set) var frameRate: Float = 0
+    private(set) var colorSpace: VideoColorSpace = .unknown
 
     private(set) var isPlaying: Bool = false
 
@@ -161,6 +162,9 @@ class VideoModel {
                 print(
                     "Selected output transfer function: \(String(describing: videoColorProperties[AVVideoTransferFunctionKey]))"
                 )
+            } else {
+                print("No transfer function set, using ITU_R_709_2")
+                videoColorProperties[AVVideoTransferFunctionKey] = AVVideoTransferFunction_ITU_R_709_2
             }
             if let videoColorPrimaries = primaryFormatDescription.extensions[.colorPrimaries] {
                 print("Color primaries: \(videoColorPrimaries.propertyListRepresentation)")
@@ -176,7 +180,7 @@ class VideoModel {
             } else {
                 print("Cannot obtain YCbCrMatrix, using default value: \(self.videoColorProperties[AVVideoYCbCrMatrixKey] ?? "none")")
             }
-            // parsing color range and bit width
+            // Parse color range and bit depth
             isFullRange = primaryFormatDescription.extensions[.fullRangeVideo] == .number(1)
             if let bitsPerComponent = primaryFormatDescription.extensions[.bitsPerComponent] {
                 if bitsPerComponent == .number(8) {
@@ -190,6 +194,44 @@ class VideoModel {
                 print("Cannot obtain bitDepth, using default value: \(self.bitDepth)")
             }
             print("Video isFullRange: \(isFullRange), bitDepth: \(bitDepth)")
+            
+            // Get color space information and determine
+            let colorPrimaries = primaryFormatDescription.extensions[.colorPrimaries]?.propertyListRepresentation as? String
+            let yCbCrMatrix = primaryFormatDescription.extensions[.yCbCrMatrix]?.propertyListRepresentation as? String
+            
+            // Determine color space standard
+            self.colorSpace = VideoColorSpace.from(
+                yCbCrMatrix: yCbCrMatrix, 
+                colorPrimaries: colorPrimaries,
+                videoSize: size
+            )
+            
+            print("Color Primaries: \(colorPrimaries ?? "Not specified")")
+            print("YCbCr Matrix: \(yCbCrMatrix ?? "Not specified")")
+            print("Video Size: \(size)")
+            print("Detected Color Space: \(self.colorSpace)")
+            
+            // Set video output properties based on color space
+            switch self.colorSpace {
+            case .bt601:
+                // BT.601 color space - use available constants
+                videoColorProperties[AVVideoYCbCrMatrixKey] = AVVideoYCbCrMatrix_ITU_R_601_4
+                videoColorProperties[AVVideoColorPrimariesKey] = AVVideoColorPrimaries_SMPTE_C
+                print("Using BT.601 color space (mapped to SMPTE_C for AVFoundation)")
+            case .bt709:
+                videoColorProperties[AVVideoYCbCrMatrixKey] = AVVideoYCbCrMatrix_ITU_R_709_2
+                videoColorProperties[AVVideoColorPrimariesKey] = AVVideoColorPrimaries_ITU_R_709_2
+                print("Using BT.709 color space")
+            case .bt2020:
+                videoColorProperties[AVVideoYCbCrMatrixKey] = AVVideoYCbCrMatrix_ITU_R_2020
+                videoColorProperties[AVVideoColorPrimariesKey] = AVVideoColorPrimaries_ITU_R_2020
+                print("Using BT.2020 color space")
+            case .p3:
+                videoColorProperties[AVVideoColorPrimariesKey] = AVVideoColorPrimaries_P3_D65
+                print("Using P3 color space")
+            default:
+                print("Using default color space (BT.709)")
+            }
         }
         if formatDescriptions.count > 1 {
             print("Not handling multiple video format descriptions")

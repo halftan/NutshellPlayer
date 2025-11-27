@@ -1,6 +1,7 @@
 import Metal
 
 extension VRPlayerEntity: TextureProviding {
+    
     var bitDepth: BitDepth {
         get { mediaProvider.bitDepth }
     }
@@ -14,6 +15,10 @@ extension VRPlayerEntity: TextureProviding {
     }
     var stereoType: SteroeType {
         get { mediaProvider.stereoType }
+    }
+    
+    var colorSpace: VideoColorSpace {
+        get { mediaProvider.colorSpace }
     }
 
     func frameTexture() -> (any MTLTexture)? {

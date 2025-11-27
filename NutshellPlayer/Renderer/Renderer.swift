@@ -140,14 +140,29 @@ class Renderer: NSObject {
     }
 
     func encodeYUVSampleStage(using renderEncoder: MTLRenderCommandEncoder,
-                              bitDepth: BitDepth = .bit8, isFullRange: Bool = false) {
+                              bitDepth: BitDepth = .bit8, isFullRange: Bool = false, colorSpace: VideoColorSpace = .bt709) {
         encodeStage(using: renderEncoder, label: "BiPlanar Sample stage") {
-            switch bitDepth {
-            case .bit8:
-                renderEncoder.setRenderPipelineState(pipelineStates.biPlanar8BitLimitedTextureSampling)
-            case .bit10:
-                renderEncoder.setRenderPipelineState(pipelineStates.biPlanar10BitLimitedTextureSampling)
+            // Select appropriate pipeline state based on color space, bit depth, and range
+            let pipelineState: MTLRenderPipelineState
+            switch (colorSpace, bitDepth, isFullRange) {
+            case (.bt601, .bit8, false):
+                pipelineState = pipelineStates.biPlanar8BitLimitedTextureSamplingBT601
+            case (.bt601, .bit8, true):
+                pipelineState = pipelineStates.biPlanar8BitFullTextureSamplingBT601
+            case (.bt709, .bit8, false):
+                pipelineState = pipelineStates.biPlanar8BitLimitedTextureSampling
+            case (.bt709, .bit8, true):
+                pipelineState = pipelineStates.biPlanar8BitFullTextureSampling
+            case (.bt709, .bit10, false):
+                pipelineState = pipelineStates.biPlanar10BitLimitedTextureSampling
+            case (.bt709, .bit10, true):
+                pipelineState = pipelineStates.biPlanar10BitFullTextureSampling
+            default:
+                // 默认使用 BT.709 8-bit limited
+                pipelineState = pipelineStates.biPlanar8BitLimitedTextureSampling
             }
+            
+            renderEncoder.setRenderPipelineState(pipelineState)
             guard let luma = textureProvider!.frameTextureLuma() else { return }
             guard let chroma = textureProvider!.frameTextureChroma() else { return }
             renderEncoder.setFragmentTexture(luma, index: 0)
@@ -174,6 +189,7 @@ protocol TextureProviding: AnyObject {
     var bitDepth: BitDepth { get }
     var isFullRange: Bool { get }
     var stereoType: SteroeType { get }
+    var colorSpace: VideoColorSpace { get }
     func frameTexture() -> MTLTexture?
     func frameTextureLuma() -> MTLTexture?
     func frameTextureChroma() -> MTLTexture?
@@ -211,10 +227,11 @@ extension Renderer {
 
 //                    encodeSampleStage(using: renderEncoder)
                     if textureProvider.isVideo {
-                        // Video should always use YUV pixelFormat
+                        // Video should always use YUV pixel format
                         encodeYUVSampleStage(using: renderEncoder,
                                              bitDepth: textureProvider.bitDepth,
-                                             isFullRange: textureProvider.isFullRange)
+                                             isFullRange: textureProvider.isFullRange,
+                                             colorSpace: textureProvider.colorSpace)
                     } else {
                         encodeSampleStage(using: renderEncoder)
                     }
