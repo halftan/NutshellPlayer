@@ -27,7 +27,7 @@ struct ImmersiveVRView: View {
                 guard
                     let resourceFileURL = appModel.videoModel.url
                 else {
-                    Text("No file is selected!")
+                    print("No file is selected!")
                     print("Failed to get texture file URL")
                     return
                 }
@@ -74,6 +74,13 @@ struct ImmersiveVRView: View {
             .onChange(of: appModel.videoModel.isPlaying, initial: true) {
                 if appModel.videoModel.isVideo {
                     playerEntity.paused = !appModel.videoModel.isPlaying
+                }
+            }
+            .onAppear {
+                // Hide main window when immersive space appears
+                if appModel.mainWindowState == .open {
+                    print("Immersive space appeared - hiding main window")
+                    dismissWindow(id: appModel.mainWindowID)
                 }
             }
             .onDisappear {
