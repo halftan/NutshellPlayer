@@ -20,7 +20,6 @@ protocol Playable: Observable {
     var isVideo: Bool { get }
     var isFullRange: Bool { get }
     var isHDR: Bool { get }
-    var isGammaEncoded: Bool { get }
     var bitDepth: BitDepth { get }
     var stereoType: SteroeType { get }
 

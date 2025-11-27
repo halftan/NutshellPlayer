@@ -9,10 +9,6 @@ extension VRPlayerEntity: TextureProviding {
         get { mediaProvider.isFullRange }
     }
 
-    var isGammaEncoded: Bool {
-        get { mediaProvider.isGammaEncoded }
-    }
-
     var isVideo: Bool {
         get { mediaProvider.isVideo }
     }

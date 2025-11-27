@@ -173,7 +173,6 @@ protocol TextureProviding: AnyObject {
     var isVideo: Bool { get }
     var bitDepth: BitDepth { get }
     var isFullRange: Bool { get }
-    var isGammaEncoded: Bool { get }
     var stereoType: SteroeType { get }
     func frameTexture() -> MTLTexture?
     func frameTextureLuma() -> MTLTexture?
@@ -209,9 +208,6 @@ extension Renderer {
                     }
                     var viewIndex = viewIndex
                     renderEncoder.setFragmentBytes(&viewIndex, length: MemoryLayout<Int>.size, index: 0)
-
-                    var isGammaEncoded: Int = textureProvider.isGammaEncoded ? 1 : 0
-                    renderEncoder.setFragmentBytes(&isGammaEncoded, length: MemoryLayout<Int>.size, index: 1)
 
 //                    encodeSampleStage(using: renderEncoder)
                     if textureProvider.isVideo {

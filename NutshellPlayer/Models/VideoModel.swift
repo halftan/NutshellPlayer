@@ -31,7 +31,6 @@ class VideoModel {
     private(set) var stereoType: SteroeType = .defaultType
     private(set) var bitDepth: BitDepth = .bit8
     private(set) var isFullRange: Bool = false
-    private(set) var isGammaEncoded: Bool = false
     private(set) var isHDR: Bool = false
     private(set) var frameRate: Float = 0
 
@@ -139,17 +138,15 @@ class VideoModel {
 
         videoColorProperties = [
             AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
-            AVVideoTransferFunctionKey: AVVideoTransferFunction_Linear,
+            AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
             AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
         ]
-        videoColorProperties[AVVideoTransferFunctionKey] = AVVideoTransferFunction_Linear
         let formatDescriptions = try await firstTrack.load(.formatDescriptions)
         if let primaryFormatDescription = formatDescriptions.first {
             if let transferFunctionValue = primaryFormatDescription.extensions[.transferFunction] {
                 print(
                     "Transfer function: \(transferFunctionValue) : plist: \(transferFunctionValue.propertyListRepresentation)"
                 )
-                isGammaEncoded = true
                 let transferFunction = transferFunctionValue.propertyListRepresentation as! CFString
                 if transferFunction
                     == CMFormatDescription.Extensions.Value.TransferFunction.itu_R_2020.rawValue
@@ -164,9 +161,6 @@ class VideoModel {
                 print(
                     "Selected output transfer function: \(String(describing: videoColorProperties[AVVideoTransferFunctionKey]))"
                 )
-            } else {
-                isGammaEncoded = false
-                print("No transfer function set, using linear (gamma encoded)")
             }
             if let videoColorPrimaries = primaryFormatDescription.extensions[.colorPrimaries] {
                 print("Color primaries: \(videoColorPrimaries.propertyListRepresentation)")

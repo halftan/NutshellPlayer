@@ -133,7 +133,7 @@ half rec709_inverse_oetf(half c) {
 }
 
 // ---------- Limited Range Helpers ----------
-half3 convert_8bit_limited_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded) {
+half3 convert_8bit_limited_yuv(half y_norm, half2 cbcr_norm) {
     half y_8bit = y_norm * 255.0h;
     half2 cbcr_8bit = cbcr_norm * 255.0h;
     half y_full = (y_8bit - 16.0h) / 219.0h;           // 235-16=219
@@ -142,9 +142,6 @@ half3 convert_8bit_limited_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded
     cbcr_centered = clamp(cbcr_centered, -0.5h, 0.5h);
 
     half3 rgb_gamma = YUV_TO_RGB_BT709 * half3(y_full, cbcr_centered.r, cbcr_centered.g);
-    if (0 == isGammaEncoded) {
-        return tonemap_rec709_to_p3(rgb_gamma, 1.0);
-    }
     // reverse gamma encoding to linear space
     half3 linear_rec709 = half3(
         rec709_inverse_oetf(rgb_gamma.r),
@@ -154,7 +151,7 @@ half3 convert_8bit_limited_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded
     return clamp(tonemap_rec709_to_p3(linear_rec709, 1.0), 0.0h, 1.0h);
 }
 
-half3 convert_10bit_limited_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded) {
+half3 convert_10bit_limited_yuv(half y_norm, half2 cbcr_norm) {
     half y_10bit = y_norm * 1023.0h;
     half2 cbcr_10bit = cbcr_norm * 1023.0h;
     half y_full = (y_10bit - 64.0h) / 876.0h;           // 940-64=876
@@ -163,9 +160,6 @@ half3 convert_10bit_limited_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncode
     cbcr_centered = clamp(cbcr_centered, -0.5h, 0.5h);
     
     half3 rgb_gamma = YUV_TO_RGB_BT709 * half3(y_full, cbcr_centered.r, cbcr_centered.g);
-    if (0 == isGammaEncoded) {
-        return tonemap_rec709_to_p3(rgb_gamma, 1.0);
-    }
     // reverse gamma encoding to linear space
     half3 linear_rec709 = half3(
         rec709_inverse_oetf(rgb_gamma.r),
@@ -176,7 +170,7 @@ half3 convert_10bit_limited_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncode
 }
 
 // ---------- Full Range Helpers ----------
-half3 convert_8bit_full_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded) {
+half3 convert_8bit_full_yuv(half y_norm, half2 cbcr_norm) {
     // Full range: Y ∈ [0,1], CbCr ∈ [0,1] → center chroma
     half y_full = y_norm;
     half2 cbcr_centered = cbcr_norm - 0.5h;
@@ -184,9 +178,6 @@ half3 convert_8bit_full_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded) {
     cbcr_centered = clamp(cbcr_centered, -0.5h, 0.5h);
 
     half3 rgb_gamma = YUV_TO_RGB_BT709 * half3(y_full, cbcr_centered.r, cbcr_centered.g);
-    if (0 == isGammaEncoded) {
-        return tonemap_rec709_to_p3(rgb_gamma, 1.0);
-    }
     // reverse gamma encoding to linear space
     half3 linear_rec709 = half3(
         rec709_inverse_oetf(rgb_gamma.r),
@@ -196,63 +187,59 @@ half3 convert_8bit_full_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded) {
     return clamp(REC709_TO_P3 * linear_rec709, 0.0h, 1.0h);
 }
 
-half3 convert_10bit_full_yuv(half y_norm, half2 cbcr_norm, uint isGammaEncoded) {
+half3 convert_10bit_full_yuv(half y_norm, half2 cbcr_norm) {
     // Same as 8-bit full! Bit depth doesn't matter in full range [0,1]
-    return convert_8bit_full_yuv(y_norm, cbcr_norm, isGammaEncoded);
+    return convert_8bit_full_yuv(y_norm, cbcr_norm);
 }
 
 // ---------- 8-bit Limited ----------
 [[fragment]]
 half4 fragment_8bit_limited_sbs(VertexOut in [[stage_in]],
                                 constant uint &viewID [[buffer(0)]],
-                                constant uint &isGammaEncoded [[buffer(1)]],
                                 texture2d<half, access::sample> lumaTexture [[texture(0)]],
                                 texture2d<half, access::sample> chromaTexture [[texture(1)]]) {
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float2 uv = texture_mapping(in.texCoords, viewID);
     half y = lumaTexture.sample(s, uv).r;
     half2 cbcr = chromaTexture.sample(s, uv).rg;
-    return half4(convert_8bit_limited_yuv(y, cbcr, isGammaEncoded), 1.0h);
+    return half4(convert_8bit_limited_yuv(y, cbcr), 1.0h);
 }
 
 // ---------- 10-bit Limited ----------
 [[fragment]]
 half4 fragment_10bit_limited_sbs(VertexOut in [[stage_in]],
                                  constant uint &viewID [[buffer(0)]],
-                                 constant uint &isGammaEncoded [[buffer(1)]],
                                  texture2d<half, access::sample> lumaTexture [[texture(0)]],
                                  texture2d<half, access::sample> chromaTexture [[texture(1)]]) {
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float2 uv = texture_mapping(in.texCoords, viewID);
     half y = lumaTexture.sample(s, uv).r;
     half2 cbcr = chromaTexture.sample(s, uv).rg;
-    return half4(convert_10bit_limited_yuv(y, cbcr, isGammaEncoded), 1.0h);
+    return half4(convert_10bit_limited_yuv(y, cbcr), 1.0h);
 }
 
 // ---------- 8-bit Full ----------
 [[fragment]]
 half4 fragment_8bit_full_sbs(VertexOut in [[stage_in]],
                              constant uint &viewID [[buffer(0)]],
-                             constant uint &isGammaEncoded [[buffer(1)]],
                              texture2d<half, access::sample> lumaTexture [[texture(0)]],
                              texture2d<half, access::sample> chromaTexture [[texture(1)]]) {
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float2 uv = texture_mapping(in.texCoords, viewID);
     half y = lumaTexture.sample(s, uv).r;
     half2 cbcr = chromaTexture.sample(s, uv).rg;
-    return half4(convert_8bit_full_yuv(y, cbcr, isGammaEncoded), 1.0h);
+    return half4(convert_8bit_full_yuv(y, cbcr), 1.0h);
 }
 
 // ---------- 10-bit Full ----------
 [[fragment]]
 half4 fragment_10bit_full_sbs(VertexOut in [[stage_in]],
                               constant uint &viewID [[buffer(0)]],
-                              constant uint &isGammaEncoded [[buffer(1)]],
                               texture2d<half, access::sample> lumaTexture [[texture(0)]],
                               texture2d<half, access::sample> chromaTexture [[texture(1)]]) {
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float2 uv = texture_mapping(in.texCoords, viewID);
     half y = lumaTexture.sample(s, uv).r;
     half2 cbcr = chromaTexture.sample(s, uv).rg;
-    return half4(convert_10bit_full_yuv(y, cbcr, isGammaEncoded), 1.0h);
+    return half4(convert_10bit_full_yuv(y, cbcr), 1.0h);
 }
