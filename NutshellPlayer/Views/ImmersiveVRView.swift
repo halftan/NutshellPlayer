@@ -15,15 +15,39 @@ struct ImmersiveVRView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
 
+    @State private var showPlaybackControls = false
+
     private var root = Entity()
     private var playerEntity = VRPlayerEntity()
     private var eventCatchingEntity = Entity()
+    private var anchor = AnchorEntity(.head, trackingMode: .once)
+    private var continuousTrackingAnchor = AnchorEntity(.head, trackingMode: .continuous)
 
     var body: some View {
         GeometryReader3D { proxy in
-            RealityView { content in
+            RealityView { content, attachments in
 
-                // Use fileModel's URL instead of hardcoded file
+                eventCatchingEntity.components.set(InputTargetComponent())
+                eventCatchingEntity.components.set(CollisionComponent(shapes: [.generateBox(width: 100, height: 100, depth: 0.1)], isStatic: true))
+                eventCatchingEntity.transform.translation.z = -10
+
+                content.add(root)
+                root.addChild(anchor)
+                root.addChild(continuousTrackingAnchor)
+                continuousTrackingAnchor.addChild(eventCatchingEntity)
+                anchor.addChild(playerEntity)
+                playerEntity.scale = .init(x: 1, y: 1, z: -1)
+
+//                let ball = ModelEntity(mesh: .generateSphere(radius: 1.0), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+//                ball.position = [0, 0, -8]
+//                eventCatchingEntity.addChild(ball)
+
+                if let playbackControlEntity = attachments.entity(for: "playback-control") {
+                    playbackControlEntity.name = "playback-control"
+                    playbackControlEntity.position = [0, -0.3, -1.5]
+                    root.addChild(playbackControlEntity)
+                }
+
                 guard
                     let resourceFileURL = appModel.videoModel.url
                 else {
@@ -32,41 +56,43 @@ struct ImmersiveVRView: View {
                     return
                 }
 
-                // let myMesh = try! PlaneMesh(size: [1.0, 1.0], dimensions: [16, 16])
-                // let myMesh = try! HemisphereMesh(radius: 100, segments: 128, rings: 128, maxVertexDepth: 100)
-                // let mesh = try! await MeshResource(from: myMesh.mesh)
-                // let mat = try! await UnlitMaterial(texture: TextureResource(contentsOf: textureFile))
-                // let m = ModelEntity(mesh: mesh, materials: [mat])
+//                 let myMesh = try! PlaneMesh(size: [1.0, 1.0], dimensions: [16, 16])
+//                 let myMesh = try! HemisphereMesh(radius: 100, segments: 128, rings: 128, maxVertexDepth: 100)
+//                 let mesh = try! await MeshResource(from: myMesh.mesh)
+//                 let mat = try! await UnlitMaterial(texture: TextureResource(contentsOf: textureFile))
+//                 let m = ModelEntity(mesh: mesh, materials: [mat])
 
 //                 root.components.set(InputTargetComponent())
 //                 var collision = CollisionComponent(shapes: [.generate(radius: 100)])
 //                 collision.filter = CollisionFilter(group: [], mask: [])
 //                 root.components.set(collision)
-
-                let anchor = AnchorEntity(.head, trackingMode: .once)
-                let continuousTrackingAnchor = AnchorEntity(.head, trackingMode: .continuous)
-                eventCatchingEntity.components.set(InputTargetComponent())
-                eventCatchingEntity.components.set(CollisionComponent(shapes: [.generateBox(width: 100, height: 100, depth: 0.1)], isStatic: true))
-                eventCatchingEntity.transform.translation.z = -10
-                continuousTrackingAnchor.addChild(eventCatchingEntity)
-
-                content.add(anchor)
-                content.add(continuousTrackingAnchor)
-                anchor.addChild(root)
-                root.addChild(playerEntity)
-                playerEntity.scale = .init(x: 1, y: 1, z: -1)
                 await playerEntity.setup(
                     resourceFile: resourceFileURL,
                     provider: appModel.videoModel)
 
                 appModel.videoModel.makeDisplayLink(target: playerEntity, selector: #selector(VRPlayerEntity.update))
-            }
-            update: { content in
+
+            } update: { content, attachments in
                  root.transform.translation = .init(
                      x: settings.translateX,
                      y: settings.translateY,
                      z: settings.translateZ
                  )
+            } attachments: {
+                Attachment(id: "playback-control") {
+                    if showPlaybackControls {
+                        VStack {
+                            Text(appModel.videoModel.url?.lastPathComponent ?? "No file selected")
+                                .font(.title)
+                                .padding()
+                                .background(.ultraThinMaterial)
+                                .glassBackgroundEffect()
+                            PlaybackControlsView(media: appModel.videoModel)
+                                .background(.ultraThinMaterial)
+                                .glassBackgroundEffect()
+                        }
+                    }
+                }
             }
             .onChange(of: settings.stereoOn, initial: true) {
                 playerEntity.setStereo(settings.stereoOn)
@@ -87,26 +113,20 @@ struct ImmersiveVRView: View {
                 print("Disappeared")
                 print("Cleaning up resources")
                 appModel.videoModel.cleanup()
+                openWindow(id: appModel.mainWindowID)
             }
             .gesture(
                 SpatialTapGesture()
                     .targetedToEntity(eventCatchingEntity)
                     .onEnded { event in
-                        print("Tap gesture received: \(event.gestureValue)")
-                        Task {
-                            switch appModel.mainWindowState {
-                            case .closed:
-                                print("Main window is closed, bringing it up now.")
-                                appModel.mainWindowState = .inTransition
-                                openWindow(id: appModel.mainWindowID)
-                            case .inTransition:
-                                // do nothing
-                                print("Main window in transition, do nothing")
-                                break
-                            case .open:
-                                print("Main window is open, closing it now.")
-                                dismissWindow(id: appModel.mainWindowID)
+                        if let playbackControlEntity = root.findEntity(named: "playback-control") {
+                            if !showPlaybackControls {
+//                                     reset playback control position
+                                let newPos = continuousTrackingAnchor.convert(position: [0, -0.3, -1.6], to: root)
+                                playbackControlEntity.setPosition(newPos, relativeTo: root)
+                                playbackControlEntity.setOrientation(continuousTrackingAnchor.orientation(relativeTo: root), relativeTo: root)
                             }
+                            showPlaybackControls.toggle()
                         }
                     }
             )
