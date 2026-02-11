@@ -290,8 +290,8 @@ class VRPlayerEntity: Entity, HasModel {
             let start = CACurrentMediaTime()
             renderer.draw(provider: self)
             let delta = CACurrentMediaTime() - start
-            if delta > 0.02 {
-                // frame took over 20ms
+            if delta > 0.011 {
+                // frame took over 11ms, the frame budget for a smooth 90fps display
                 print("Slow frame render time: \(delta)")
             }
         }

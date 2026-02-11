@@ -20,6 +20,7 @@ struct NutshellPlayerApp: App {
             SettingsView()
                 .environment(appModel)
                 .environment(settings)
+                .padding(.bottom, 10)
         }
         .windowResizability(.contentSize)
 
