@@ -140,6 +140,15 @@ half rec709_inverse_oetf(half c) {
     }
 }
 
+// Inverse EOTF for Rec.601
+half rec601_inverse_oetf(half c) {
+    if (c <= 0.03928h) {
+        return c / 4.403h;  // Linear segment for BT.601
+    } else {
+        return pow((c + 0.09929h) / 1.09929h, 1.0h / 0.45h);  // Gamma segment for BT.601
+    }
+}
+
 // ---------- Limited Range Helpers ----------
 half3 convert_8bit_limited_yuv(half y_norm, half2 cbcr_norm) {
     half y_8bit = y_norm * 255.0h;
@@ -156,7 +165,7 @@ half3 convert_8bit_limited_yuv(half y_norm, half2 cbcr_norm) {
         rec709_inverse_oetf(rgb_gamma.g),
         rec709_inverse_oetf(rgb_gamma.b)
     );
-    return clamp(tonemap_rec709_to_p3(linear_rec709, 1.0), 0.0h, 1.0h);
+    return clamp(REC709_TO_P3 * linear_rec709, 0.0h, 1.0h);
 }
 
 // ---------- BT.601 Limited Range Helpers ----------
@@ -171,11 +180,11 @@ half3 convert_8bit_limited_yuv_bt601(half y_norm, half2 cbcr_norm) {
     half3 rgb_gamma = YUV_TO_RGB_BT601 * half3(y_full, cbcr_centered.r, cbcr_centered.g);
     // reverse gamma encoding to linear space
     half3 linear_rec601 = half3(
-        rec709_inverse_oetf(rgb_gamma.r),
-        rec709_inverse_oetf(rgb_gamma.g),
-        rec709_inverse_oetf(rgb_gamma.b)
+        rec601_inverse_oetf(rgb_gamma.r),
+        rec601_inverse_oetf(rgb_gamma.g),
+        rec601_inverse_oetf(rgb_gamma.b)
     );
-    return clamp(tonemap_rec709_to_p3(linear_rec601, 1.0), 0.0h, 1.0h);
+    return clamp(REC709_TO_P3 * linear_rec601, 0.0h, 1.0h);
 }
 
 
@@ -191,9 +200,9 @@ half3 convert_8bit_full_yuv_bt601(half y_norm, half2 cbcr_norm) {
     half3 rgb_gamma = YUV_TO_RGB_BT601 * half3(y_full, cbcr_centered.r, cbcr_centered.g);
     // reverse gamma encoding to linear space
     half3 linear_rec601 = half3(
-        rec709_inverse_oetf(rgb_gamma.r),
-        rec709_inverse_oetf(rgb_gamma.g),
-        rec709_inverse_oetf(rgb_gamma.b)
+        rec601_inverse_oetf(rgb_gamma.r),
+        rec601_inverse_oetf(rgb_gamma.g),
+        rec601_inverse_oetf(rgb_gamma.b)
     );
     return clamp(REC709_TO_P3 * linear_rec601, 0.0h, 1.0h);
 }
