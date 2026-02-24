@@ -8,8 +8,6 @@ import SwiftUI
 import AVFoundation
 
 struct PlaybackControlsView: View {
-    private var media: Playable
-    
     @Environment(AppModel.self) private var appModel
     @Environment(Settings.self) private var settings
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
@@ -29,17 +27,13 @@ struct PlaybackControlsView: View {
         return formatter
     }()
 
-    init(media: Playable) {
-        self.media = media
-    }
-    
     var body: some View {
         VStack {
             HStack(alignment: .center) {
                 Button {
-                    media.pause()
+                    appModel.videoModel.pause()
                     Task {
-                        await media.stop()
+                        await appModel.videoModel.stop()
                         await dismissImmersiveSpace()
                     }
                 } label: {
@@ -49,13 +43,13 @@ struct PlaybackControlsView: View {
                 }
                 .buttonStyle(.borderless)
                 Button {
-                    if media.isPlaying {
-                        media.pause()
+                    if appModel.videoModel.isPlaying {
+                        appModel.videoModel.pause()
                     } else {
-                        media.play()
+                        appModel.videoModel.play()
                     }
                 } label: {
-                    Image(systemName: media.isPlaying ? "pause.fill" : "play.fill")
+                    Image(systemName: appModel.videoModel.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 20))
                         .tint(Color.primary)
                 }
@@ -79,14 +73,14 @@ struct PlaybackControlsView: View {
                     isVideoTransporting = true
                     Task {
                         print("Seek to \(currentTime)")
-                        let result = await media.seek(to: .init(seconds: currentTime, preferredTimescale: 2))
+                        let result = await appModel.videoModel.seek(to: .init(seconds: currentTime, preferredTimescale: 2))
                         print("Seek result is: \(result)")
                         isVideoTransporting = false
                     }
                 }
             })
             .frame(width: 280)
-            .onChange(of: media.currentTime, initial: true) { _, newVal in
+            .onChange(of: appModel.videoModel.currentTime, initial: true) { _, newVal in
                 if !(isEditingState || isVideoTransporting) {
                     currentTime = newVal
                     currentTimeString = durationFormatter.string(from: currentTime) ?? "00:00"
@@ -98,8 +92,8 @@ struct PlaybackControlsView: View {
                     currentTimeString = durationFormatter.string(from: currentTime) ?? "00:00"
                 }
             }
-            .onChange(of: media.duration, initial: true) { _, newVal in
-                duration = media.duration
+            .onChange(of: appModel.videoModel.duration, initial: true) { _, newVal in
+                duration = appModel.videoModel.duration
                 durationTimeString = durationFormatter.string(from: duration) ?? "00:00"
             }
             .padding(.vertical)

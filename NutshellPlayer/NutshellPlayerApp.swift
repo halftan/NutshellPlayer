@@ -24,12 +24,13 @@ struct NutshellPlayerApp: App {
         }
         .windowResizability(.contentSize)
 
-        WindowGroup(id: appModel.realityWindowID) {
-            VRPlayerView()
-                .ignoresSafeArea()
-        }
-        .defaultSize(width: 1.0, height: 1.0, depth: 1.0, in: .meters)
-        .windowStyle(.plain)
+        /// Reality window that plays 3D content on a plane
+//        WindowGroup(id: appModel.realityWindowID) {
+//            VRPlayerView()
+//                .ignoresSafeArea()
+//        }
+//        .defaultSize(width: 1.0, height: 1.0, depth: 1.0, in: .meters)
+//        .windowStyle(.plain)
 
         ImmersiveSpace(id: appModel.immersiveViewID) {
             ImmersiveVRView()

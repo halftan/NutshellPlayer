@@ -70,7 +70,9 @@ struct ImmersiveVRView: View {
                     resourceFile: resourceFileURL,
                     provider: appModel.videoModel)
 
-                appModel.videoModel.makeDisplayLink(target: playerEntity, selector: #selector(VRPlayerEntity.update))
+                if let videoModelNeedsDisplayLink = appModel.videoModel as? VideoModel {
+                    videoModelNeedsDisplayLink.makeDisplayLink(target: playerEntity, selector: #selector(VRPlayerEntity.update))
+                }
 
             } update: { content, attachments in
                  root.transform.translation = .init(
@@ -87,9 +89,10 @@ struct ImmersiveVRView: View {
                                 .padding()
                                 .background(.ultraThinMaterial)
                                 .glassBackgroundEffect()
-                            PlaybackControlsView(media: appModel.videoModel)
+                            PlaybackControlsView()
                                 .background(.ultraThinMaterial)
                                 .glassBackgroundEffect()
+                                .environment(appModel)
                         }
                     }
                 }

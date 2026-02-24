@@ -69,7 +69,7 @@ struct OpenVRContentButton: View {
             case .success(let url):
                 Task {
                     do {
-                        try await appModel.videoModel.load(url)
+                        try await appModel.videoModel.open(url)
                         await doOpenImmersiveSpace()
                     } catch (let error) {
                         fatalError(error.localizedDescription)

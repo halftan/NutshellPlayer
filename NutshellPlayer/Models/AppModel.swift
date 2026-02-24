@@ -28,5 +28,5 @@ class AppModel {
     }
     var mainWindowState = MainWindowState.open
 
-    var videoModel = VideoModel()
+    var videoModel: Playable = VideoModel()
 }

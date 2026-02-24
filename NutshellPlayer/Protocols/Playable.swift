@@ -67,6 +67,7 @@ enum VideoColorSpace {
 
 
 protocol Playable: Observable {
+    var url: URL? { get }
     var isVideo: Bool { get }
     var isFullRange: Bool { get }
     var isHDR: Bool { get }
@@ -93,4 +94,5 @@ protocol Playable: Observable {
     func pause()
     func play()
 
+    func open(_ url: URL) async throws
 }

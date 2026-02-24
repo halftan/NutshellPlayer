@@ -73,7 +73,7 @@ class VideoModel {
         print("VideoModel deinit: \(self)")
     }
 
-    func load(_ url: URL) async throws {
+    func open(_ url: URL) async throws {
         // Stop accessing the old URL's security scoped resource if it exists
         if let oldURL = _url {
             print("Previously loaded URL not released properly!")
