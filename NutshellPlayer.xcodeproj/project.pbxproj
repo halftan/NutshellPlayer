@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3DD2B11C2F4DABD500C13B34 /* SFmpeg in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD2B11B2F4DABD500C13B34 /* SFmpeg */; };
 		3DE4D6192ECF513500E5D138 /* RealityKit-assets in Frameworks */ = {isa = PBXBuildFile; productRef = 3DE4D6182ECF513500E5D138 /* RealityKit-assets */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DD2B11C2F4DABD500C13B34 /* SFmpeg in Frameworks */,
 				3DE4D6192ECF513500E5D138 /* RealityKit-assets in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -92,6 +94,7 @@
 			name = NutshellPlayer;
 			packageProductDependencies = (
 				3DE4D6182ECF513500E5D138 /* RealityKit-assets */,
+				3DD2B11B2F4DABD500C13B34 /* SFmpeg */,
 			);
 			productName = NutshellPlayer;
 			productReference = 3DE4D61B2ED36DFE00E5D138 /* NutshellPlayer.app */;
@@ -123,6 +126,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				3DE4D6172ECF513500E5D138 /* XCLocalSwiftPackageReference "Packages/RealityKit-assets" */,
+				3DD2B11A2F4DABD500C13B34 /* XCLocalSwiftPackageReference "../SFmpeg" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3DE4D5A12ECF4E9400E5D138;
@@ -172,7 +176,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fun.zhfm.NutshellPlayer;
+				PRODUCT_BUNDLE_IDENTIFIER = fun.NutshellPlayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -183,6 +187,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -203,7 +208,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = fun.zhfm.NutshellPlayer;
+				PRODUCT_BUNDLE_IDENTIFIER = fun.NutshellPlayer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -214,6 +219,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
@@ -362,6 +368,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		3DD2B11A2F4DABD500C13B34 /* XCLocalSwiftPackageReference "../SFmpeg" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../SFmpeg;
+		};
 		3DE4D6172ECF513500E5D138 /* XCLocalSwiftPackageReference "Packages/RealityKit-assets" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Packages/RealityKit-assets";
@@ -369,6 +379,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3DD2B11B2F4DABD500C13B34 /* SFmpeg */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SFmpeg;
+		};
 		3DE4D6182ECF513500E5D138 /* RealityKit-assets */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = "RealityKit-assets";
