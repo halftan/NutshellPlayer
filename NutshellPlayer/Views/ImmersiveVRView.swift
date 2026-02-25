@@ -20,7 +20,7 @@ struct ImmersiveVRView: View {
     @State private var showPlaybackControls = false
 
     private var root = Entity()
-    private var playerEntity = VRPlayerEntity()
+    private var playerEntity = APMPPlayerEntity()
     private var eventCatchingEntity = Entity()
     private var anchor = AnchorEntity(.head, trackingMode: .once)
     private var continuousTrackingAnchor = AnchorEntity(.head, trackingMode: .continuous)
@@ -68,13 +68,14 @@ struct ImmersiveVRView: View {
 //                 var collision = CollisionComponent(shapes: [.generate(radius: 100)])
 //                 collision.filter = CollisionFilter(group: [], mask: [])
 //                 root.components.set(collision)
-                await playerEntity.setup(
-                    resourceFile: resourceFileURL,
-                    provider: appModel.videoModel)
+//                await playerEntity.setup(
+//                    resourceFile: resourceFileURL,
+//                    provider: appModel.videoModel)
+//                logger.info("Finished player entity setup")
 
-                if let videoModelNeedsDisplayLink = appModel.videoModel as? VideoModel {
-                    videoModelNeedsDisplayLink.makeDisplayLink(target: playerEntity, selector: #selector(VRPlayerEntity.update))
-                }
+//                if let videoModelNeedsDisplayLink = appModel.videoModel as? VideoModel {
+//                    videoModelNeedsDisplayLink.makeDisplayLink(target: playerEntity, selector: #selector(VRPlayerEntity.update))
+//                }
 
             } update: { content, attachments in
                  root.transform.translation = .init(
@@ -108,16 +109,20 @@ struct ImmersiveVRView: View {
                 }
             }
             .onAppear {
+                Task.immediate {
+                    await playerEntity.setup(
+                        provider: appModel.videoModel
+                    )
+                }
                 // Hide main window when immersive space appears
                 if appModel.mainWindowState == .open {
-                    print("Immersive space appeared - hiding main window")
+                    logger.info("Immersive space appeared - hiding main window")
                     dismissWindow(id: appModel.mainWindowID)
                 }
             }
             .onDisappear {
-                print("Disappeared")
-                print("Cleaning up resources")
-                appModel.videoModel.cleanup()
+                logger.info("Immersive view disappearing. Cleaning player entity")
+                playerEntity.cleanup()
                 openWindow(id: appModel.mainWindowID)
             }
             .gesture(
