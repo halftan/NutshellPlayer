@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3DD2B11C2F4DABD500C13B34 /* SFmpeg in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD2B11B2F4DABD500C13B34 /* SFmpeg */; };
+		3D0993E42F4F54B2001ECF54 /* SFmpeg in Frameworks */ = {isa = PBXBuildFile; productRef = 3D0993E32F4F54B2001ECF54 /* SFmpeg */; };
 		3DE4D6192ECF513500E5D138 /* RealityKit-assets in Frameworks */ = {isa = PBXBuildFile; productRef = 3DE4D6182ECF513500E5D138 /* RealityKit-assets */; };
 /* End PBXBuildFile section */
 
@@ -41,7 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DD2B11C2F4DABD500C13B34 /* SFmpeg in Frameworks */,
+				3D0993E42F4F54B2001ECF54 /* SFmpeg in Frameworks */,
 				3DE4D6192ECF513500E5D138 /* RealityKit-assets in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -94,7 +94,7 @@
 			name = NutshellPlayer;
 			packageProductDependencies = (
 				3DE4D6182ECF513500E5D138 /* RealityKit-assets */,
-				3DD2B11B2F4DABD500C13B34 /* SFmpeg */,
+				3D0993E32F4F54B2001ECF54 /* SFmpeg */,
 			);
 			productName = NutshellPlayer;
 			productReference = 3DE4D61B2ED36DFE00E5D138 /* NutshellPlayer.app */;
@@ -126,7 +126,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				3DE4D6172ECF513500E5D138 /* XCLocalSwiftPackageReference "Packages/RealityKit-assets" */,
-				3DD2B11A2F4DABD500C13B34 /* XCLocalSwiftPackageReference "../SFmpeg" */,
+				3D0993E22F4F54B2001ECF54 /* XCRemoteSwiftPackageReference "SFmpeg" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3DE4D5A12ECF4E9400E5D138;
@@ -368,19 +368,27 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3DD2B11A2F4DABD500C13B34 /* XCLocalSwiftPackageReference "../SFmpeg" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../SFmpeg;
-		};
 		3DE4D6172ECF513500E5D138 /* XCLocalSwiftPackageReference "Packages/RealityKit-assets" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "Packages/RealityKit-assets";
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		3D0993E22F4F54B2001ECF54 /* XCRemoteSwiftPackageReference "SFmpeg" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/halftan/SFmpeg";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		3DD2B11B2F4DABD500C13B34 /* SFmpeg */ = {
+		3D0993E32F4F54B2001ECF54 /* SFmpeg */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 3D0993E22F4F54B2001ECF54 /* XCRemoteSwiftPackageReference "SFmpeg" */;
 			productName = SFmpeg;
 		};
 		3DE4D6182ECF513500E5D138 /* RealityKit-assets */ = {
