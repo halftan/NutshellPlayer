@@ -7,8 +7,10 @@
 import RealityKit
 import SwiftUI
 import UniformTypeIdentifiers
+import os.log
 
 struct ImmersiveVRView: View {
+    private let logger = Logger(subsystem: "fun.NutshellPlayer", category: "ImmersiveVRView")
 
     @Environment(AppModel.self) private var appModel
     @Environment(Settings.self) private var settings

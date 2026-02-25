@@ -201,14 +201,68 @@ class VRPlayerEntity: Entity, HasModel {
                 print("video output not set!")
                 return
             }
-            let itemTime = videoOutput.itemTime(forHostTime: CACurrentMediaTime())
-            if !videoOutput.hasNewPixelBuffer(forItemTime: itemTime) {
+            guard let sampleBuffer = videoOutput.copyNextSampleBuffer() else {
+                print("Failed to get next sample buffer from video output")
                 return
             }
-            guard let pixelBuffer = videoOutput.copyPixelBuffer(forItemTime: itemTime, itemTimeForDisplay: nil) else {
-                print("Failed to copy pixel buffer from video output")
-                return
+            sampleBuffer.withUnsafeSampleBuffer() { sbuf in
+                guard let pixelBuffer = sbuf.imageBuffer else {
+                    print("Got empty pixel buffer from sample buffer")
+                    return
+                }
+
+                let lumaW = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0)
+                let lumaH = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0)
+
+                var lumaTexture: CVMetalTexture?
+                let resultLuma = CVMetalTextureCacheCreateTextureFromImage(
+                    kCFAllocatorDefault,
+                    self.mtlTextureCache!,
+                    pixelBuffer,
+                    nil,
+                    self.mediaProvider.bitDepth == .bit10 ? .r16Unorm : .r8Unorm,
+                    lumaW,
+                    lumaH,
+                    0,
+                    &lumaTexture
+                )
+                switch resultLuma {
+                case kCVReturnSuccess:
+                    break
+                default:
+                    print("Error to fetch luma texture from plane 0: \(resultLuma)")
+                    return
+                }
+                self.cvMetalTexture = lumaTexture
+                self.texture = CVMetalTextureGetTexture(lumaTexture!)
+
+                let chromaW = CVPixelBufferGetWidthOfPlane(pixelBuffer, 1)
+                let chromaH = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1)
+
+                var chromaTexture: CVMetalTexture?
+                let resultChroma = CVMetalTextureCacheCreateTextureFromImage(
+                    kCFAllocatorDefault,
+                    self.mtlTextureCache!,
+                    pixelBuffer,
+                    nil,
+                    self.mediaProvider.bitDepth == .bit10 ? .rg16Unorm : .rg8Unorm,
+                    chromaW,
+                    chromaH,
+                    1,
+                    &chromaTexture
+                )
+                switch resultChroma {
+                case kCVReturnSuccess:
+                    break
+                default:
+                    print("Error to fetch chroma texture from plane 1: \(resultChroma)")
+                    return
+                }
+
+                self.cvMetalTextureChroma = chromaTexture
+                self.textureChroma = CVMetalTextureGetTexture(chromaTexture!)
             }
+
 
 //            let pixelBufferWidth = CVPixelBufferGetWidth(pixelBuffer)
 //            let pixelBufferHeight = CVPixelBufferGetHeight(pixelBuffer)
@@ -224,56 +278,6 @@ class VRPlayerEntity: Entity, HasModel {
 //                0,
 //                &cvTexture)
             
-            let lumaW = CVPixelBufferGetWidthOfPlane(pixelBuffer, 0)
-            let lumaH = CVPixelBufferGetHeightOfPlane(pixelBuffer, 0)
-            
-            var lumaTexture: CVMetalTexture?
-            let resultLuma = CVMetalTextureCacheCreateTextureFromImage(
-                kCFAllocatorDefault,
-                self.mtlTextureCache!,
-                pixelBuffer,
-                nil,
-                mediaProvider.bitDepth == .bit10 ? .r16Unorm : .r8Unorm,
-                lumaW,
-                lumaH,
-                0,
-                &lumaTexture
-            )
-            switch resultLuma {
-            case kCVReturnSuccess:
-                break
-            default:
-                print("Error to fetch luma texture from plane 0: \(resultLuma)")
-                return
-            }
-            cvMetalTexture = lumaTexture
-            texture = CVMetalTextureGetTexture(lumaTexture!)
-
-            let chromaW = CVPixelBufferGetWidthOfPlane(pixelBuffer, 1)
-            let chromaH = CVPixelBufferGetHeightOfPlane(pixelBuffer, 1)
-            
-            var chromaTexture: CVMetalTexture?
-            let resultChroma = CVMetalTextureCacheCreateTextureFromImage(
-                kCFAllocatorDefault,
-                self.mtlTextureCache!,
-                pixelBuffer,
-                nil,
-                mediaProvider.bitDepth == .bit10 ? .rg16Unorm : .rg8Unorm,
-                chromaW,
-                chromaH,
-                1,
-                &chromaTexture
-            )
-            switch resultChroma {
-            case kCVReturnSuccess:
-                break
-            default:
-                print("Error to fetch chroma texture from plane 1: \(resultChroma)")
-                return
-            }
-
-            cvMetalTextureChroma = chromaTexture
-            textureChroma = CVMetalTextureGetTexture(chromaTexture!)
         }
     }
 

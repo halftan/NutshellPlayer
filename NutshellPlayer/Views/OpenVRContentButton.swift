@@ -6,8 +6,10 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+import os.log
 
 struct OpenVRContentButton: View {
+    private var logger = Logger(subsystem: "fun.NutshellPlayer", category: "OpenVRContentButton")
 
     @State private var showFileImporter = false
 
@@ -70,9 +72,10 @@ struct OpenVRContentButton: View {
                 Task {
                     do {
                         try await appModel.videoModel.open(url)
+                        appModel.videoModel.play()
                         await doOpenImmersiveSpace()
-                    } catch (let error) {
-                        fatalError(error.localizedDescription)
+                    } catch {
+                        logger.error("\(error)")
                     }
                 }
             }

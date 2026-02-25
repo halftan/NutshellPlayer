@@ -5,13 +5,51 @@
 //
 
 import AVFoundation
+import os.log
 
 extension VideoModel: Playable {
-    var videoOutput: AVPlayerItemVideoOutput? {
-        get {
-            let output = self.player?.currentItem?.outputs.first as? AVPlayerItemVideoOutput
-            return output
+
+    struct SampleBufferOutput: SampleBufferProvider {
+        let logger: Logger
+        let videoOutput: AVPlayerItemVideoOutput
+
+        init(videoOutput: AVPlayerItemVideoOutput, logger: Logger) {
+            self.videoOutput = videoOutput
+            self.logger = logger
         }
+
+        func copyNextSampleBuffer() -> CMReadySampleBuffer<CMSampleBuffer.DynamicContent>? {
+
+            let itemTime = videoOutput.itemTime(forHostTime: CACurrentMediaTime())
+            if !videoOutput.hasNewPixelBuffer(forItemTime: itemTime) {
+                return nil
+            }
+            guard let pixelBuffer = videoOutput.copyPixelBuffer(forItemTime: itemTime, itemTimeForDisplay: nil) else {
+                logger.error("Failed to copy pixel buffer from video output")
+                return nil
+            }
+            let roPixelBuffer = CVReadOnlyPixelBuffer(unsafeBuffer: pixelBuffer)
+            return CMReadySampleBuffer<CMSampleBuffer.DynamicContent>(CMReadySampleBuffer(pixelBuffer: roPixelBuffer, presentationTimeStamp: itemTime))
+        }
+    }
+
+    var videoRenderer: AVSampleBufferVideoRenderer {
+        fatalError("Not implemented")
+    }
+
+    var videoOutput: SampleBufferProvider? {
+        get {
+            if let output = self.player?.currentItem?.outputs.first as? AVPlayerItemVideoOutput {
+                return SampleBufferOutput(videoOutput: output, logger: logger)
+            } else {
+                return nil
+            }
+        }
+    }
+
+    func copyNextSampleBuffer() -> CMReadySampleBuffer<CMSampleBuffer.DynamicContent>? {
+        logger.error("\(#function) is not implemented on NativeVideoModel")
+        return nil
     }
 
     var aspectRatio: CGFloat {

@@ -78,7 +78,7 @@ protocol Playable: Observable {
     var naturalSize: CGSize { get }
     var aspectRatio: CGFloat { get }
     // var optimalPixelFormat: OSType { get }
-    var videoOutput: AVPlayerItemVideoOutput? { get }
+    var videoOutput: SampleBufferProvider? { get }
     var videoOutputSettings: VideoOutputSettings { get }
 
     func cleanup()

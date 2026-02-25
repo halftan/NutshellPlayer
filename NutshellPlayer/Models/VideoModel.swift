@@ -10,6 +10,7 @@ import MetalKit
 import SwiftUI
 import UniformTypeIdentifiers
 import Combine
+import os.log
 
 extension CGFloat {
     static var defaultAspectRatio: Self {
@@ -19,12 +20,13 @@ extension CGFloat {
 
 @Observable
 class VideoModel {
-    var url: URL? {
-        return _url
-    }
+    var logger = Logger(subsystem: "fun.NutshellPlayer.models", category: "NativeVideoModel")
 
     // Private backing storage for the url property
     private var _url: URL?
+    var url: URL? {
+        return _url
+    }
 
     private(set) var utType: UTType!
     private(set) var isVideo = true
@@ -340,7 +342,7 @@ class VideoModel {
         // Clean up player item and its associated resources
         if let playerItem = player?.currentItem {
             // Remove video output from player item before niling it
-            if let videoOutput = videoOutput {
+            if let videoOutput = (videoOutput as? AVPlayerItemOutput) {
                 playerItem.remove(videoOutput)
             }
         }
