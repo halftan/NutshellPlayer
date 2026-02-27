@@ -10,7 +10,8 @@ A simple VR video player for Apple Vision Pro — Swift-first with a small Metal
 - Supports VR 180 Left/Right (SBS/LR) format for H.264 and HEVC videos in mp4
 container. As long as supported by the Preview app, NutshellPlayer can play it.
 - Supports static VR180 images, jpeg and png.
-- Codec/container support is limited to what AVFoundation provides on the target device.
+- Codec/container support comes from ffmpeg, but not widely tested.
+NutshellPlayer uses [my own fork of SwiftFFmpeg](https://github.com/halftan/SFmpeg).
 
 ## Requirements
 - Xcode 26+
