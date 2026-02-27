@@ -43,7 +43,7 @@ struct NutshellPlayerApp: App {
                 .environment(appModel)
                 .environment(settings)
         }
-        .immersionStyle(selection: .constant(.full), in: .mixed, .full)
+        .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
         .upperLimbVisibility(settings.showHandsInImmersiveView)
     }
 }

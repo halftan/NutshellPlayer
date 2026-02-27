@@ -38,7 +38,7 @@ struct ImmersiveVRView: View {
                 root.addChild(continuousTrackingAnchor)
                 continuousTrackingAnchor.addChild(eventCatchingEntity)
                 anchor.addChild(playerEntity)
-                playerEntity.scale = .init(x: 1, y: 1, z: -1)
+//                playerEntity.scale = .init(x: 1, y: 1, z: -1)
 
 //                let ball = ModelEntity(mesh: .generateSphere(radius: 1.0), materials: [SimpleMaterial(color: .red, isMetallic: false)])
 //                ball.position = [0, 0, -8]
@@ -57,6 +57,9 @@ struct ImmersiveVRView: View {
                     print("Failed to get texture file URL")
                     return
                 }
+                await playerEntity.setup(
+                    provider: appModel.videoModel
+                )
 
 //                 let myMesh = try! PlaneMesh(size: [1.0, 1.0], dimensions: [16, 16])
 //                 let myMesh = try! HemisphereMesh(radius: 100, segments: 128, rings: 128, maxVertexDepth: 100)
@@ -109,11 +112,6 @@ struct ImmersiveVRView: View {
                 }
             }
             .onAppear {
-                Task.immediate {
-                    await playerEntity.setup(
-                        provider: appModel.videoModel
-                    )
-                }
                 // Hide main window when immersive space appears
                 if appModel.mainWindowState == .open {
                     logger.info("Immersive space appeared - hiding main window")

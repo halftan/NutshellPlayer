@@ -26,52 +26,46 @@ class APMPPlayerEntity: Entity, HasModel {
             logger.info("Setup video renderer")
             ffmpegVideoProvider.setVideoRenderer(renderer)
         }
-        do {
-            let hemisphereMesh = try HemisphereMesh(radius: 10, segments: 128, rings: 128, maxVertexDepth: 100)
-            let hemisphereMeshResource = try await MeshResource(from: hemisphereMesh.mesh)
+        var videoPlayerComponent = VideoPlayerComponent(videoRenderer: renderer)
+        videoPlayerComponent.desiredSpatialVideoMode = .spatial
+        videoPlayerComponent.desiredViewingMode = .stereo
+        videoPlayerComponent.desiredImmersiveViewingMode = .progressive
+        self.components.set(videoPlayerComponent)
 
-            let videoMaterial = VideoMaterial(videoRenderer: renderer)
-            self.components.set(ModelComponent(mesh: hemisphereMeshResource, materials: [videoMaterial]))
-
-            if provider.videoOutput != nil {
-                renderer.requestMediaDataWhenReady(on: DispatchQueue.global()) { [weak self] in
-                    while self?.renderer.isReadyForMoreMediaData ?? false {
-                        if let sampleBuffer = self?.provider?.videoOutput?.copyNextSampleBuffer() {
-                            var sampleBufferWithAPMP: CMReadySampleBuffer<CVReadOnlyPixelBuffer>?
-                            switch sampleBuffer.content {
-                            case .pixelBuffer(let pixelBuffer):
-                                if let formatDescription = try? self?.getAPMPFormatDescription(for: pixelBuffer) {
-                                    sampleBufferWithAPMP = CMReadySampleBuffer<CVReadOnlyPixelBuffer>(
-                                        pixelBuffer: pixelBuffer,
-                                        formatDescription: formatDescription,
-                                        presentationTimeStamp: sampleBuffer.presentationTimeStamp,
-                                        duration: sampleBuffer.duration)
-                                }
-                            default:
-                                self?.logger.error("Wrong type of sample buffer content. Expecting pixelBuffer.")
-                                break
+        if provider.videoOutput != nil {
+            renderer.requestMediaDataWhenReady(on: DispatchQueue.global()) { [weak self] in
+                while self?.renderer.isReadyForMoreMediaData ?? false {
+                    if let sampleBuffer = self?.provider?.videoOutput?.copyNextSampleBuffer() {
+                        var sampleBufferWithAPMP: CMReadySampleBuffer<CVReadOnlyPixelBuffer>?
+                        switch sampleBuffer.content {
+                        case .pixelBuffer(let pixelBuffer):
+                            if let formatDescription = try? self?.getAPMPFormatDescription(for: pixelBuffer) {
+                                sampleBufferWithAPMP = CMReadySampleBuffer<CVReadOnlyPixelBuffer>(
+                                    pixelBuffer: pixelBuffer,
+                                    formatDescription: formatDescription,
+                                    presentationTimeStamp: sampleBuffer.presentationTimeStamp,
+                                    duration: sampleBuffer.duration)
                             }
-                            if sampleBufferWithAPMP != nil {
-                                sampleBufferWithAPMP!.withUnsafeSampleBuffer() { [weak self] sbuf in
-                                    self?.logger.debug("Retrieved video frame@:\(sbuf.presentationTimeStamp.seconds), duration: \(sbuf.duration.seconds)")
-                                    self?.renderer.enqueue(sbuf)
-                                }
-                            } else {
-                                sampleBuffer.withUnsafeSampleBuffer() { [weak self] sbuf in
-                                    self?.logger.debug("Retrieved video frame@:\(sbuf.presentationTimeStamp.seconds), duration: \(sbuf.duration.seconds)")
-                                    self?.renderer.enqueue(sbuf)
-                                }
+                        default:
+                            self?.logger.error("Wrong type of sample buffer content. Expecting pixelBuffer.")
+                            break
+                        }
+                        if sampleBufferWithAPMP != nil {
+                            sampleBufferWithAPMP!.withUnsafeSampleBuffer() { [weak self] sbuf in
+                                self?.renderer.enqueue(sbuf)
                             }
                         } else {
-                            self?.logger.info("No more sample buffer")
-                            self?.renderer.stopRequestingMediaData()
-                            return
+                            sampleBuffer.withUnsafeSampleBuffer() { [weak self] sbuf in
+                                self?.renderer.enqueue(sbuf)
+                            }
                         }
+                    } else {
+                        self?.logger.info("No more sample buffer")
+                        self?.renderer.stopRequestingMediaData()
+                        return
                     }
                 }
             }
-        } catch {
-            logger.error("Failed to setup player entity: \(error)")
         }
     }
 
@@ -127,8 +121,7 @@ class APMPPlayerEntity: Entity, HasModel {
         var extensions = baseFormat.extensions
 
         extensions[.viewPackingKind] = .viewPackingKind(.sideBySide)
-        extensions[.projectionKind] = .projectionKind(.equirectangular)
-        extensions[.horizontalFieldOfView] = .number(UInt32(180 * 1000))
+        extensions[.projectionKind] = .projectionKind(.halfEquirectangular)
 
         return try CMVideoFormatDescription(
             videoCodecType: baseFormat.mediaSubType,
